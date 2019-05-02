@@ -4,7 +4,7 @@
 
 Name:           performous
 Version:        1.2
-Release:        0.1.%{gitdate}git%{shortcommit0}%{?dist}
+Release:        0.2.%{gitdate}git%{shortcommit0}%{?dist}
 Summary:        Free cross-platform music and rhythm / party game
 
 # The main code is GPLv2+, and there are fonts under ASL 2.0 and SIL licenses
@@ -42,6 +42,7 @@ BuildRequires:  libxml++-devel
 BuildRequires:  libraw1394-devel
 BuildRequires:  libtheora-devel
 BuildRequires:  opencv-devel
+BuildRequires:  openssl-devel
 BuildRequires:  pango-devel
 BuildRequires:  portaudio-devel
 BuildRequires:  portmidi-devel
@@ -123,6 +124,9 @@ rm -rf %buildroot%{_libdir}/*.{a,la}
 
 
 %changelog
+* Thu May 02 2019 Leigh Scott <leigh123linux@gmail.com> - 1.2-0.2.20190419git4ed8ec7
+- Add buildrequires openssl-devel
+
 * Thu May 02 2019 Leigh Scott <leigh123linux@gmail.com> - 1.2-0.1.20190419git4ed8ec7
 - Update to latest git snapshot
 - Short out the horrible buildrequires mess
