@@ -1,30 +1,53 @@
+%global commit0 4ed8ec78452a5c9e1aad55915378f301a4aa4bca
+%global gitdate 20190419
+%global shortcommit0 %(c=%{commit0}; echo ${c:0:7})
+
 Name:           performous
-Version:        1.1
-Release:        4%{?dist}
+Version:        1.2
+Release:        0.1.%{gitdate}git%{shortcommit0}%{?dist}
 Summary:        Free cross-platform music and rhythm / party game
 
 # The main code is GPLv2+, and there are fonts under ASL 2.0 and SIL licenses
 License:        GPLv2+ and ASL 2.0 and OFL
 URL:            http://performous.org
-Source0:        https://github.com/performous/performous/archive/%{version}/%{name}-%{version}.tar.gz
-Source1:        https://raw.githubusercontent.com/performous/performous/master/licence.txt
-Source2:        performous.appdata.xml
+Source0:        https://github.com/performous/performous/archive/%{commit0}/%{name}-%{shortcommit0}.tar.gz
+Source1:        https://github.com/performous/compact_enc_det/archive/9d2d658/ced-9d2d658.tar.gz
+Source2:        https://raw.githubusercontent.com/performous/performous/master/licence.txt
+Source3:        performous.appdata.xml
 
-BuildRequires:  gcc-c++, cmake, cairo-devel, SDL2-devel
-BuildRequires:  boost-devel, boost-system, boost-filesystem
-BuildRequires:  librsvg2-devel, libxml2-devel, alsa-lib-devel
-BuildRequires:  recode, glew-devel, help2man, libvorbis-devel
-BuildRequires:  libsigc++20-devel, glibmm24-devel, libxml++-devel
-BuildRequires:  ImageMagick-devel, ImageMagick-c++-devel
-BuildRequires:  ffmpeg-devel, libraw1394-devel, libtheora-devel
-BuildRequires:  pango-devel, portaudio-devel, gettext
-BuildRequires:  opencv-devel, portmidi-devel
-BuildRequires:  libepoxy-devel
+BuildRequires:  alsa-lib-devel
+BuildRequires:  boost-devel
+BuildRequires:  boost-system
+BuildRequires:  boost-filesystem
+BuildRequires:  cmake3
+BuildRequires:  cairo-devel
+BuildRequires:  cpprest-devel
 BuildRequires:  desktop-file-utils
+BuildRequires:  ffmpeg-devel
+BuildRequires:  glew-devel
+BuildRequires:  gcc-c++
+BuildRequires:  gettext
+BuildRequires:  glibmm24-devel
+BuildRequires:  glm-devel
+BuildRequires:  help2man
+BuildRequires:  ImageMagick-devel
+BuildRequires:  ImageMagick-c++-devel
+BuildRequires:  libepoxy-devel
 BuildRequires:  libappstream-glib
+BuildRequires:  libvorbis-devel
+BuildRequires:  libsigc++20-devel
+BuildRequires:  librsvg2-devel
+BuildRequires:  libxml2-devel
+BuildRequires:  libxml++-devel
+BuildRequires:  libraw1394-devel
+BuildRequires:  libtheora-devel
+BuildRequires:  opencv-devel
+BuildRequires:  pango-devel
+BuildRequires:  portaudio-devel
+BuildRequires:  portmidi-devel
+BuildRequires:  recode
+BuildRequires:  SDL2-devel
 
-Obsoletes:      ultrastar-ng <= 0.3.0
-Provides:       ultrastar-ng = %{version}
 Requires:       %{name}-data = %{version}-%{release}
 
 %description
@@ -45,13 +68,10 @@ package.
 
 
 %prep
-%autosetup
-cp -p %{SOURCE1} .
+%autosetup -n %{name}-%{commit0}
+tar -xf %{SOURCE1} -C ced/ --strip 1
+cp -p %{SOURCE2} .
 cp -p "docs/license/SIL OFL Font License New Rocker.txt" SIL-OFL.txt
-# Incorrect FSF address
-# https://github.com/performous/performous/issues/328
-sed -i -e 's/59 Temple Place, Suite 330, Boston, MA  02111-1307/51 Franklin St, Fifth Floor, Boston, MA  02110-1301/g' \
-    tools/gh_fsb/*.{c,h}
 
 
 %build
@@ -60,7 +80,7 @@ cd build
 # Jack support is disabled because the engine can't be chosen at run-time and
 # jack will always take precedence over pulseaudio
 #%%cmake -DSHARE_INSTALL:PATH=share/performous \
-%cmake -DSHARE_INSTALL:PATH=%{_datadir}/performous \
+%cmake3 -DSHARE_INSTALL:PATH=%{_datadir}/performous \
        -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo \
        ..
 %make_build
@@ -71,14 +91,14 @@ cd build
 %make_install
 
 ## Menu
-mkdir -p $RPM_BUILD_ROOT%{_datadir}/applications
-desktop-file-validate $RPM_BUILD_ROOT%{_datadir}/applications/%{name}.desktop
+mkdir -p %buildroot%{_datadir}/applications
+desktop-file-validate %buildroot%{_datadir}/applications/%{name}.desktop
 
 ## Appstream
-install -D -m 644 -p %{SOURCE2} $RPM_BUILD_ROOT%{_datadir}/metainfo/%{name}.appdata.xml
-appstream-util validate-relax --nonet $RPM_BUILD_ROOT%{_datadir}/metainfo/%{name}.appdata.xml
+install -D -m 644 -p %{SOURCE3} %buildroot%{_datadir}/metainfo/%{name}.appdata.xml
+appstream-util validate-relax --nonet %buildroot%{_datadir}/metainfo/%{name}.appdata.xml
 
-rm -rf $RPM_BUILD_ROOT%{_libdir}/*.{a,la}
+rm -rf %buildroot%{_libdir}/*.{a,la}
 
 %find_lang Performous
 
@@ -103,6 +123,11 @@ rm -rf $RPM_BUILD_ROOT%{_libdir}/*.{a,la}
 
 
 %changelog
+* Thu May 02 2019 Leigh Scott <leigh123linux@gmail.com> - 1.2-0.1.20190419git4ed8ec7
+- Update to latest git snapshot
+- Short out the horrible buildrequires mess
+- Don't fix fsf address, it isn't our job
+
 * Mon Mar 04 2019 RPM Fusion Release Engineering <leigh123linux@gmail.com> - 1.1-4
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_30_Mass_Rebuild
 
