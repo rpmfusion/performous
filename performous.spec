@@ -4,7 +4,7 @@
 
 Name:           performous
 Version:        1.2
-Release:        0.2.%{gitdate}git%{shortcommit0}%{?dist}
+Release:        0.3.%{gitdate}git%{shortcommit0}%{?dist}
 Summary:        Free cross-platform music and rhythm / party game
 
 # The main code is GPLv2+, and there are fonts under ASL 2.0 and SIL licenses
@@ -124,6 +124,9 @@ rm -rf %buildroot%{_libdir}/*.{a,la}
 
 
 %changelog
+* Wed Aug 07 2019 Leigh Scott <leigh123linux@gmail.com> - 1.2-0.3.20190419git4ed8ec7
+- Rebuild for new ffmpeg version
+
 * Thu May 02 2019 Leigh Scott <leigh123linux@gmail.com> - 1.2-0.2.20190419git4ed8ec7
 - Add buildrequires openssl-devel
 
