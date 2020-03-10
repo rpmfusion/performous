@@ -4,7 +4,7 @@
 
 Name:           performous
 Version:        1.2
-Release:        0.4.%{gitdate}git%{shortcommit0}%{?dist}
+Release:        0.5.%{gitdate}git%{shortcommit0}%{?dist}
 Summary:        Free cross-platform music and rhythm / party game
 
 # The main code is GPLv2+, and there are fonts under ASL 2.0 and SIL licenses
@@ -14,6 +14,7 @@ Source0:        https://github.com/performous/performous/archive/%{commit0}/%{na
 Source1:        https://github.com/performous/compact_enc_det/archive/9d2d658/ced-9d2d658.tar.gz
 Source2:        https://raw.githubusercontent.com/performous/performous/master/licence.txt
 Source3:        performous.appdata.xml
+Patch0:         https://patch-diff.githubusercontent.com/raw/performous/performous/pull/493.patch#/pango-1.44.7_buildfix.patch
 
 BuildRequires:  alsa-lib-devel
 BuildRequires:  boost-devel
@@ -69,7 +70,7 @@ package.
 
 
 %prep
-%autosetup -n %{name}-%{commit0}
+%autosetup -p1 -n %{name}-%{commit0}
 tar -xf %{SOURCE1} -C ced/ --strip 1
 cp -p %{SOURCE2} .
 cp -p "docs/license/SIL OFL Font License New Rocker.txt" SIL-OFL.txt
@@ -88,8 +89,7 @@ cd build
 
 
 %install
-cd build
-%make_install
+%make_install -C build
 
 ## Menu
 mkdir -p %buildroot%{_datadir}/applications
@@ -124,6 +124,9 @@ rm -rf %buildroot%{_libdir}/*.{a,la}
 
 
 %changelog
+* Tue Mar 10 2020 leigh123linux <leigh123linux@googlemail.com> - 1.2-0.5.20190419git4ed8ec7
+- Patch for pango-1.44.7
+
 * Wed Feb 05 2020 RPM Fusion Release Engineering <leigh123linux@gmail.com> - 1.2-0.4.20190419git4ed8ec7
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_32_Mass_Rebuild
 
