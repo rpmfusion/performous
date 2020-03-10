@@ -89,7 +89,8 @@ cd build
 
 
 %install
-%make_install -C build
+cd build
+%make_install
 
 ## Menu
 mkdir -p %buildroot%{_datadir}/applications
