@@ -4,7 +4,7 @@
 
 Name:           performous
 Version:        1.2
-Release:        0.5.%{gitdate}git%{shortcommit0}%{?dist}
+Release:        0.6.%{gitdate}git%{shortcommit0}%{?dist}
 Summary:        Free cross-platform music and rhythm / party game
 
 # The main code is GPLv2+, and there are fonts under ASL 2.0 and SIL licenses
@@ -125,6 +125,9 @@ rm -rf %buildroot%{_libdir}/*.{a,la}
 
 
 %changelog
+* Thu Jun 04 2020 Leigh Scott <leigh123linux@gmail.com> - 1.2-0.6.20190419git4ed8ec7
+- Rebuilt for Boost 1.73
+
 * Tue Mar 10 2020 leigh123linux <leigh123linux@googlemail.com> - 1.2-0.5.20190419git4ed8ec7
 - Patch for pango-1.44.7
 
