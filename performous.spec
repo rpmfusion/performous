@@ -35,6 +35,7 @@ BuildRequires:  ImageMagick-devel
 BuildRequires:  ImageMagick-c++-devel
 BuildRequires:  libepoxy-devel
 BuildRequires:  libappstream-glib
+BuildRequires:  libjpeg-turbo-devel
 BuildRequires:  libvorbis-devel
 BuildRequires:  libsigc++20-devel
 BuildRequires:  librsvg2-devel
