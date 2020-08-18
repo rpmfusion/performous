@@ -4,7 +4,7 @@
 
 Name:           performous
 Version:        1.2
-Release:        0.7.%{gitdate}git%{shortcommit0}%{?dist}
+Release:        0.8.%{gitdate}git%{shortcommit0}%{?dist}
 Summary:        Free cross-platform music and rhythm / party game
 
 # The main code is GPLv2+, and there are fonts under ASL 2.0 and SIL licenses
@@ -126,6 +126,9 @@ rm -rf %buildroot%{_libdir}/*.{a,la}
 
 
 %changelog
+* Tue Aug 18 2020 RPM Fusion Release Engineering <leigh123linux@gmail.com> - 1.2-0.8.20190419git4ed8ec7
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_33_Mass_Rebuild
+
 * Wed Jun 10 2020 Leigh Scott <leigh123linux@gmail.com> - 1.2-0.7.20190419git4ed8ec7
 - Rebuilt for opencv-4.3
 
