@@ -2,8 +2,6 @@
 %global gitdate 20190419
 %global shortcommit0 %(c=%{commit0}; echo ${c:0:7})
 
-%undefine __cmake_in_source_build
-
 Name:           performous
 Version:        1.2
 Release:        0.8.%{gitdate}git%{shortcommit0}%{?dist}
@@ -80,16 +78,20 @@ cp -p "docs/license/SIL OFL Font License New Rocker.txt" SIL-OFL.txt
 
 
 %build
+mkdir -p build
+cd build
 # Jack support is disabled because the engine can't be chosen at run-time and
 # jack will always take precedence over pulseaudio
 #%%cmake -DSHARE_INSTALL:PATH=share/performous \
 %cmake3 -DSHARE_INSTALL:PATH=%{_datadir}/performous \
-       -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo
-%cmake3_build
+       -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo \
+       ..
+%make_build
 
 
 %install
-%cmake3_install
+cd build
+%make_install
 
 ## Menu
 mkdir -p %buildroot%{_datadir}/applications
