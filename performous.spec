@@ -2,6 +2,8 @@
 %global gitdate 20190419
 %global shortcommit0 %(c=%{commit0}; echo ${c:0:7})
 
+%global __cmake_in_source_build 1
+
 Name:           performous
 Version:        1.2
 Release:        0.8.%{gitdate}git%{shortcommit0}%{?dist}
