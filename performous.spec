@@ -1,22 +1,22 @@
-%global commit0 4ed8ec78452a5c9e1aad55915378f301a4aa4bca
-%global gitdate 20190419
+%global commit0 997f48846e67a36cf1362ee037adc08f824d6336
+%global gitdate 20200604
 %global shortcommit0 %(c=%{commit0}; echo ${c:0:7})
 
-%global __cmake_in_source_build 1
+%undefine __cmake_in_source_build
 
 Name:           performous
-Version:        1.2
-Release:        0.8.%{gitdate}git%{shortcommit0}%{?dist}
+Version:        2.0.0
+Release:        0.1.%{gitdate}git%{shortcommit0}%{?dist}
 Summary:        Free cross-platform music and rhythm / party game
 
 # The main code is GPLv2+, and there are fonts under ASL 2.0 and SIL licenses
 License:        GPLv2+ and ASL 2.0 and OFL
-URL:            http://performous.org
+URL:            https://performous.org
 Source0:        https://github.com/performous/performous/archive/%{commit0}/%{name}-%{shortcommit0}.tar.gz
-Source1:        https://github.com/performous/compact_enc_det/archive/9d2d658/ced-9d2d658.tar.gz
+Source1:        https://github.com/performous/compact_enc_det/archive/26faf8f/ced-26faf8f.tar.gz
+Source4:        https://github.com/performous/aubio/archive/712511e/aubio-712511e.tar.gz
 Source2:        https://raw.githubusercontent.com/performous/performous/master/licence.txt
 Source3:        performous.appdata.xml
-Patch0:         https://patch-diff.githubusercontent.com/raw/performous/performous/pull/493.patch#/pango-1.44.7_buildfix.patch
 
 BuildRequires:  alsa-lib-devel
 BuildRequires:  boost-devel
@@ -46,12 +46,17 @@ BuildRequires:  libxml++-devel
 BuildRequires:  libraw1394-devel
 BuildRequires:  libtheora-devel
 BuildRequires:  opencv-devel
+BuildRequires:  openblas-devel
+BuildRequires:  blas-devel
+BuildRequires:  lapack-devel
+BuildRequires:  fftw-devel
 BuildRequires:  openssl-devel
 BuildRequires:  pango-devel
 BuildRequires:  portaudio-devel
 BuildRequires:  portmidi-devel
 BuildRequires:  recode
 BuildRequires:  SDL2-devel
+BuildRequires:  python
 
 Requires:       %{name}-data = %{version}-%{release}
 
@@ -74,26 +79,23 @@ package.
 
 %prep
 %autosetup -p1 -n %{name}-%{commit0}
-tar -xf %{SOURCE1} -C ced/ --strip 1
+tar -xf %{SOURCE1} -C 3rdparty/ced/ --strip 1
+tar -xf %{SOURCE4} -C 3rdparty/aubio/ --strip 1
 cp -p %{SOURCE2} .
 cp -p "docs/license/SIL OFL Font License New Rocker.txt" SIL-OFL.txt
 
 
 %build
-mkdir -p build
-cd build
 # Jack support is disabled because the engine can't be chosen at run-time and
 # jack will always take precedence over pulseaudio
 #%%cmake -DSHARE_INSTALL:PATH=share/performous \
-%cmake3 -DSHARE_INSTALL:PATH=%{_datadir}/performous \
-       -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo \
-       ..
-%make_build
+%cmake -DSHARE_INSTALL:PATH=%{_datadir}/performous \
+       -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo -DUSE_BOOST_REGEX=1
+%cmake_build
 
 
 %install
-cd build
-%make_install
+%cmake_install
 
 ## Menu
 mkdir -p %buildroot%{_datadir}/applications
@@ -111,7 +113,7 @@ rm -rf %buildroot%{_libdir}/*.{a,la}
 %ldconfig_scriptlets
 
 
-%files -f build/Performous.lang
+%files -f Performous.lang
 %license licence.txt
 %doc docs/*.txt
 %{_bindir}/*
