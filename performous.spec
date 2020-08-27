@@ -130,6 +130,11 @@ rm -rf %buildroot%{_libdir}/*.{a,la}
 
 
 %changelog
+* Thu Aug 27 2020 Sérgio Basto <sergio@serjux.com> - 2.0.0-0.1.20200604git997f488
+- Update to 20200604git997f488
+- Update Version https://github.com/performous/performous/projects/2
+- Fix crash on startup rfbz #5720
+
 * Tue Aug 18 2020 RPM Fusion Release Engineering <leigh123linux@gmail.com> - 1.2-0.8.20190419git4ed8ec7
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_33_Mass_Rebuild
 
