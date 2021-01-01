@@ -6,7 +6,7 @@
 
 Name:           performous
 Version:        2.0.0
-Release:        0.1.%{gitdate}git%{shortcommit0}%{?dist}
+Release:        0.2.%{gitdate}git%{shortcommit0}%{?dist}
 Summary:        Free cross-platform music and rhythm / party game
 
 # The main code is GPLv2+, and there are fonts under ASL 2.0 and SIL licenses
@@ -130,6 +130,9 @@ rm -rf %buildroot%{_libdir}/*.{a,la}
 
 
 %changelog
+* Fri Jan  1 2021 Leigh Scott <leigh123linux@gmail.com> - 2.0.0-0.2.20200604git997f488
+- Rebuilt for new ffmpeg snapshot
+
 * Thu Aug 27 2020 Sérgio Basto <sergio@serjux.com> - 2.0.0-0.1.20200604git997f488
 - Update to 20200604git997f488
 - Update Version https://github.com/performous/performous/projects/2
