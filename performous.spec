@@ -1,12 +1,12 @@
-%global commit0 997f48846e67a36cf1362ee037adc08f824d6336
-%global gitdate 20200604
+%global commit0 57ad2fc71f625a432f5e82b15bcf44081a29e8f8
+%global gitdate 20201029
 %global shortcommit0 %(c=%{commit0}; echo ${c:0:7})
 
 %undefine __cmake_in_source_build
 
 Name:           performous
 Version:        2.0.0
-Release:        0.2.%{gitdate}git%{shortcommit0}%{?dist}
+Release:        0.3.%{gitdate}git%{shortcommit0}%{?dist}
 Summary:        Free cross-platform music and rhythm / party game
 
 # The main code is GPLv2+, and there are fonts under ASL 2.0 and SIL licenses
@@ -14,8 +14,7 @@ License:        GPLv2+ and ASL 2.0 and OFL
 URL:            https://performous.org
 Source0:        https://github.com/performous/performous/archive/%{commit0}/%{name}-%{shortcommit0}.tar.gz
 Source1:        https://github.com/performous/compact_enc_det/archive/26faf8f/ced-26faf8f.tar.gz
-Source4:        https://github.com/performous/aubio/archive/712511e/aubio-712511e.tar.gz
-Source2:        https://raw.githubusercontent.com/performous/performous/master/licence.txt
+Source2:        https://github.com/performous/aubio/archive/712511e/aubio-712511e.tar.gz
 Source3:        performous.appdata.xml
 
 BuildRequires:  alsa-lib-devel
@@ -80,15 +79,14 @@ package.
 %prep
 %autosetup -p1 -n %{name}-%{commit0}
 tar -xf %{SOURCE1} -C 3rdparty/ced/ --strip 1
-tar -xf %{SOURCE4} -C 3rdparty/aubio/ --strip 1
-cp -p %{SOURCE2} .
+tar -xf %{SOURCE2} -C 3rdparty/aubio/ --strip 1
 cp -p "docs/license/SIL OFL Font License New Rocker.txt" SIL-OFL.txt
 
 
 %build
 # Jack support is disabled because the engine can't be chosen at run-time and
 # jack will always take precedence over pulseaudio
-#%%cmake -DSHARE_INSTALL:PATH=share/performous \
+#cmake -DSHARE_INSTALL:PATH=share/performous \
 %cmake -DSHARE_INSTALL:PATH=%{_datadir}/performous \
        -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo -DUSE_BOOST_REGEX=1
 %cmake_build
@@ -109,10 +107,6 @@ rm -rf %buildroot%{_libdir}/*.{a,la}
 
 %find_lang Performous
 
-
-%ldconfig_scriptlets
-
-
 %files -f Performous.lang
 %license licence.txt
 %doc docs/*.txt
@@ -130,6 +124,9 @@ rm -rf %buildroot%{_libdir}/*.{a,la}
 
 
 %changelog
+* Mon Jan 04 2021 Sérgio Basto <sergio@serjux.com> - 2.0.0-0.3.20201029git57ad2fc
+- Update to 20201029git57ad2fc
+
 * Fri Jan  1 2021 Leigh Scott <leigh123linux@gmail.com> - 2.0.0-0.2.20200604git997f488
 - Rebuilt for new ffmpeg snapshot
 
