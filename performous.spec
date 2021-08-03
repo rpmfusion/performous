@@ -6,7 +6,7 @@
 
 Name:           performous
 Version:        2.0.0
-Release:        0.5.%{gitdate}git%{shortcommit0}%{?dist}
+Release:        0.6.%{gitdate}git%{shortcommit0}%{?dist}
 Summary:        Free cross-platform music and rhythm / party game
 
 # The main code is GPLv2+, and there are fonts under ASL 2.0 and SIL licenses
@@ -124,6 +124,9 @@ rm -rf %buildroot%{_libdir}/*.{a,la}
 
 
 %changelog
+* Tue Aug 03 2021 RPM Fusion Release Engineering <leigh123linux@gmail.com> - 2.0.0-0.6.20201029git57ad2fc
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_35_Mass_Rebuild
+
 * Sat Apr 24 2021 Leigh Scott <leigh123linux@gmail.com> - 2.0.0-0.5.20201029git57ad2fc
 - Rebuilt for removed libstdc++ symbol (#1937698)
 
