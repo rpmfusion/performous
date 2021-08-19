@@ -1,0 +1,19 @@
+--- ./CMakeLists.txt.orig	2021-08-14 11:51:13.000000000 +0100
++++ ./CMakeLists.txt	2021-08-19 22:19:26.292918145 +0100
+@@ -78,9 +78,6 @@ endif()
+ 
+ include(FetchContent)
+ FetchContent_Declare(ced-sources
+-  GIT_REPOSITORY https://github.com/performous/compact_enc_det.git
+-  #https://github.com/google/compact_enc_det.git
+-  GIT_TAG        master
+   SOURCE_DIR ced-src
+ )
+ 
+@@ -175,4 +172,4 @@ set(CPACK_NSIS_MUI_HEADERIMAGE "${CMAKE_
+ set(CPACK_NSIS_MANIFEST_DPI_AWARE ON)
+ set(CPACK_NSIS_BRANDING_TEXT "Performous installer ${PROJECT_VERSION} 2009-${YEAR}")
+ 
+-include(CPack)
+\ No newline at end of file
++include(CPack)

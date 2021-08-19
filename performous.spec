@@ -1,6 +1,8 @@
-%global commit0 57ad2fc71f625a432f5e82b15bcf44081a29e8f8
-%global gitdate 20201029
+%global gitdate 20210814
+%global commit0 e0a28a61df442b4a4a34521cd3aa8e37e3f9ce3c
 %global shortcommit0 %(c=%{commit0}; echo ${c:0:7})
+%global commit1 0fe8be431ebc7562379cd0f791110233c04420da
+%global shortcommit1 %(c=%{commit1}; echo ${c:0:7})
 
 %undefine __cmake_in_source_build
 
@@ -13,11 +15,12 @@ Summary:        Free cross-platform music and rhythm / party game
 License:        GPLv2+ and ASL 2.0 and OFL
 URL:            https://performous.org
 Source0:        https://github.com/performous/performous/archive/%{commit0}/%{name}-%{shortcommit0}.tar.gz
-Source1:        https://github.com/performous/compact_enc_det/archive/26faf8f/ced-26faf8f.tar.gz
-Source2:        https://github.com/performous/aubio/archive/712511e/aubio-712511e.tar.gz
+Source1:        https://github.com/performous/compact_enc_det/archive/%{commit1}/ced-%{shortcommit1}.tar.gz
 Source3:        performous.appdata.xml
+Patch0:         performous-ced-offline.patch
 
 BuildRequires:  alsa-lib-devel
+BuildRequires:  aubio-devel
 BuildRequires:  boost-devel
 BuildRequires:  boost-system
 BuildRequires:  boost-filesystem
@@ -78,17 +81,16 @@ package.
 
 %prep
 %autosetup -p1 -n %{name}-%{commit0}
-tar -xf %{SOURCE1} -C 3rdparty/ced/ --strip 1
-tar -xf %{SOURCE2} -C 3rdparty/aubio/ --strip 1
+mkdir -p %{__cmake_builddir}/ced-src
+tar -xf %{SOURCE1} -C %{__cmake_builddir}/ced-src/ --strip 1
 cp -p "docs/license/SIL OFL Font License New Rocker.txt" SIL-OFL.txt
 
 
 %build
 # Jack support is disabled because the engine can't be chosen at run-time and
 # jack will always take precedence over pulseaudio
-#cmake -DSHARE_INSTALL:PATH=share/performous \
 %cmake -DSHARE_INSTALL:PATH=%{_datadir}/performous \
-       -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo -DUSE_BOOST_REGEX=1
+       -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo
 %cmake_build
 
 
@@ -108,7 +110,7 @@ rm -rf %buildroot%{_libdir}/*.{a,la}
 %find_lang Performous
 
 %files -f Performous.lang
-%license licence.txt
+%license LICENSE.md
 %doc docs/*.txt
 %{_bindir}/*
 %{_datadir}/applications/*.desktop
@@ -117,7 +119,7 @@ rm -rf %buildroot%{_libdir}/*.{a,la}
 %{_mandir}/man*/*
 
 %files data
-%license licence.txt
+%license LICENSE.md
 %license docs/license/Apache-2.0-DroidSansMono.txt
 %license SIL-OFL.txt
 %{_datadir}/%{name}
