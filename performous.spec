@@ -8,7 +8,7 @@
 
 Name:           performous
 Version:        2.0.0
-Release:        0.8.%{gitdate}git%{shortcommit0}%{?dist}
+Release:        0.9.%{gitdate}git%{shortcommit0}%{?dist}
 Summary:        Free cross-platform music and rhythm / party game
 
 # The main code is GPLv2+, and there are fonts under ASL 2.0 and SIL licenses
@@ -126,6 +126,9 @@ rm -rf %buildroot%{_libdir}/*.{a,la}
 
 
 %changelog
+* Wed Feb 09 2022 RPM Fusion Release Engineering <sergiomb@rpmfusion.org> - 2.0.0-0.9.20210814gite0a28a6
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_36_Mass_Rebuild
+
 * Thu Aug 19 2021 Sérgio Basto <sergio@serjux.com> - 2.0.0-0.8.20210814gite0a28a6
 - Update performous to 20210814gite0a28a6
 - Use system aubio
