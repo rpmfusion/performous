@@ -7,17 +7,20 @@
 %undefine __cmake_in_source_build
 
 Name:           performous
-Version:        2.0.0
-Release:        0.9.%{gitdate}git%{shortcommit0}%{?dist}
+Epoch:          1
+Version:        1.2.0
+Release:        1%{?dist}
 Summary:        Free cross-platform music and rhythm / party game
 
 # The main code is GPLv2+, and there are fonts under ASL 2.0 and SIL licenses
 License:        GPLv2+ and ASL 2.0 and OFL
 URL:            https://performous.org
-Source0:        https://github.com/performous/performous/archive/%{commit0}/%{name}-%{shortcommit0}.tar.gz
+Source0:        https://github.com/performous/performous/archive/refs/tags/%{version}/%{name}-%{version}.tar.gz
 Source1:        https://github.com/performous/compact_enc_det/archive/%{commit1}/ced-%{shortcommit1}.tar.gz
 Source3:        performous.appdata.xml
 Patch0:         performous-ced-offline.patch
+Patch1:         performous-gcc12.patch
+Patch2:         performous-ffmpeg.patch
 
 BuildRequires:  alsa-lib-devel
 BuildRequires:  aubio-devel
@@ -80,7 +83,7 @@ package.
 
 
 %prep
-%autosetup -p1 -n %{name}-%{commit0}
+%autosetup -p1 -n %{name}-%{version}
 mkdir -p %{__cmake_builddir}/ced-src
 tar -xf %{SOURCE1} -C %{__cmake_builddir}/ced-src/ --strip 1
 cp -p "docs/license/SIL OFL Font License New Rocker.txt" SIL-OFL.txt
@@ -126,6 +129,10 @@ rm -rf %buildroot%{_libdir}/*.{a,la}
 
 
 %changelog
+* Thu Apr 14 2022 Sérgio Basto <sergio@serjux.com> - 1:1.2.0-1
+- Update performous to 1.2.0
+- This new version is not 2.0.0 as someone wrote, so we need add a new epoch
+
 * Wed Feb 09 2022 RPM Fusion Release Engineering <sergiomb@rpmfusion.org> - 2.0.0-0.9.20210814gite0a28a6
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_36_Mass_Rebuild
 

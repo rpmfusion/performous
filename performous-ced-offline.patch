@@ -10,10 +10,3 @@
    SOURCE_DIR ced-src
  )
  
-@@ -175,4 +172,4 @@ set(CPACK_NSIS_MUI_HEADERIMAGE "${CMAKE_
- set(CPACK_NSIS_MANIFEST_DPI_AWARE ON)
- set(CPACK_NSIS_BRANDING_TEXT "Performous installer ${PROJECT_VERSION} 2009-${YEAR}")
- 
--include(CPack)
-\ No newline at end of file
-+include(CPack)
