@@ -4,12 +4,10 @@
 %global commit1 0fe8be431ebc7562379cd0f791110233c04420da
 %global shortcommit1 %(c=%{commit1}; echo ${c:0:7})
 
-%undefine __cmake_in_source_build
-
 Name:           performous
 Epoch:          1
 Version:        1.2.0
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Free cross-platform music and rhythm / party game
 
 # The main code is GPLv2+, and there are fonts under ASL 2.0 and SIL licenses
@@ -27,7 +25,7 @@ BuildRequires:  aubio-devel
 BuildRequires:  boost-devel
 BuildRequires:  boost-system
 BuildRequires:  boost-filesystem
-BuildRequires:  cmake3
+BuildRequires:  cmake
 BuildRequires:  cairo-devel
 BuildRequires:  cpprest-devel
 BuildRequires:  desktop-file-utils
@@ -63,7 +61,8 @@ BuildRequires:  recode
 BuildRequires:  SDL2-devel
 BuildRequires:  python
 
-Requires:       %{name}-data = %{version}-%{release}
+Requires:       %{name}-data = %{?epoch}:%{version}-%{release}
+Requires:       ffmpeg-libs%{?_isa}
 
 %description
 A karaoke, band and dancing game where one or more players perform a song and
@@ -74,7 +73,7 @@ and Rock Band as well as some dance pads are auto-detected.
 
 %package data
 Summary:        Data for Performous, the music and rhythm / party game
-Requires:       %{name} = %{version}-%{release}
+Requires:       %{name} = %{?epoch}:%{version}-%{release}
 BuildArch:      noarch
 
 %description data
@@ -105,8 +104,8 @@ mkdir -p %buildroot%{_datadir}/applications
 desktop-file-validate %buildroot%{_datadir}/applications/%{name}.desktop
 
 ## Appstream
-install -D -m 644 -p %{SOURCE3} %buildroot%{_datadir}/metainfo/%{name}.appdata.xml
-appstream-util validate-relax --nonet %buildroot%{_datadir}/metainfo/%{name}.appdata.xml
+install -D -m 644 -p %{SOURCE3} %buildroot%{_metainfodir}/%{name}.appdata.xml
+appstream-util validate-relax --nonet %buildroot%{_metainfodir}/%{name}.appdata.xml
 
 rm -rf %buildroot%{_libdir}/*.{a,la}
 
@@ -117,7 +116,7 @@ rm -rf %buildroot%{_libdir}/*.{a,la}
 %doc docs/*.txt
 %{_bindir}/*
 %{_datadir}/applications/*.desktop
-%{_datadir}/metainfo/%{name}.appdata.xml
+%{_metainfodir}/%{name}.appdata.xml
 %{_datadir}/pixmaps/*.svg
 %{_mandir}/man*/*
 
@@ -125,10 +124,14 @@ rm -rf %buildroot%{_libdir}/*.{a,la}
 %license LICENSE.md
 %license docs/license/Apache-2.0-DroidSansMono.txt
 %license SIL-OFL.txt
-%{_datadir}/%{name}
+%{_datadir}/%{name}/
 
 
 %changelog
+* Sat Apr 30 2022 Leigh Scott <leigh123linux@gmail.com> - 1:1.2.0-2
+- Add epoch to the requires
+- Spec file clean up
+
 * Thu Apr 14 2022 Sérgio Basto <sergio@serjux.com> - 1:1.2.0-1
 - Update performous to 1.2.0
 - This new version is not 2.0.0 as someone wrote, so we need add a new epoch
