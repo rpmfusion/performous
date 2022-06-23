@@ -7,7 +7,7 @@
 Name:           performous
 Epoch:          1
 Version:        1.2.0
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        Free cross-platform music and rhythm / party game
 
 # The main code is GPLv2+, and there are fonts under ASL 2.0 and SIL licenses
@@ -128,6 +128,9 @@ rm -rf %buildroot%{_libdir}/*.{a,la}
 
 
 %changelog
+* Thu Jun 23 2022 Sérgio Basto <sergio@serjux.com> - 1:1.2.0-3
+- Rebuilt for opencv 4.6.0
+
 * Sat Apr 30 2022 Leigh Scott <leigh123linux@gmail.com> - 1:1.2.0-2
 - Add epoch to the requires
 - Spec file clean up
