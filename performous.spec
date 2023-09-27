@@ -1,13 +1,13 @@
 %global gitdate 20210814
 %global commit0 e0a28a61df442b4a4a34521cd3aa8e37e3f9ce3c
 %global shortcommit0 %(c=%{commit0}; echo ${c:0:7})
-%global commit1 0fe8be431ebc7562379cd0f791110233c04420da
+%global commit1 9ca1351fe0b1e85992a407b0fc54a63e9b3adc6e
 %global shortcommit1 %(c=%{commit1}; echo ${c:0:7})
 
 Name:           performous
 Epoch:          1
-Version:        1.2.0
-Release:        8%{?dist}
+Version:        1.3.0
+Release:        1%{?dist}
 Summary:        Free cross-platform music and rhythm / party game
 
 # The main code is GPLv2+, and there are fonts under ASL 2.0 and SIL licenses
@@ -17,8 +17,6 @@ Source0:        https://github.com/performous/performous/archive/refs/tags/%{ver
 Source1:        https://github.com/performous/compact_enc_det/archive/%{commit1}/ced-%{shortcommit1}.tar.gz
 Source3:        performous.appdata.xml
 Patch0:         performous-ced-offline.patch
-Patch1:         performous-gcc12.patch
-Patch2:         performous-ffmpeg.patch
 
 BuildRequires:  alsa-lib-devel
 BuildRequires:  aubio-devel
@@ -30,6 +28,7 @@ BuildRequires:  cairo-devel
 BuildRequires:  cpprest-devel
 BuildRequires:  desktop-file-utils
 BuildRequires:  ffmpeg-devel
+BuildRequires:  fmt-devel
 BuildRequires:  glew-devel
 BuildRequires:  gcc-c++
 BuildRequires:  gettext
@@ -38,6 +37,7 @@ BuildRequires:  glm-devel
 BuildRequires:  help2man
 BuildRequires:  ImageMagick-devel
 BuildRequires:  ImageMagick-c++-devel
+BuildRequires:  json-devel
 BuildRequires:  libepoxy-devel
 BuildRequires:  libappstream-glib
 BuildRequires:  libjpeg-turbo-devel
@@ -83,8 +83,8 @@ package.
 
 %prep
 %autosetup -p1 -n %{name}-%{version}
-mkdir -p %{__cmake_builddir}/ced-src
-tar -xf %{SOURCE1} -C %{__cmake_builddir}/ced-src/ --strip 1
+mkdir -p ced
+tar -xf %{SOURCE1} -C ced/ --strip 1
 cp -p "docs/license/SIL OFL Font License New Rocker.txt" SIL-OFL.txt
 
 
@@ -118,16 +118,19 @@ rm -rf %buildroot%{_libdir}/*.{a,la}
 %{_datadir}/applications/*.desktop
 %{_metainfodir}/%{name}.appdata.xml
 %{_datadir}/pixmaps/*.svg
-%{_mandir}/man*/*
+%{_mandir}/performous.6.*
 
 %files data
 %license LICENSE.md
 %license docs/license/Apache-2.0-DroidSansMono.txt
 %license SIL-OFL.txt
-%{_datadir}/%{name}/
+%{_datadir}/games/%{name}/
 
 
 %changelog
+* Wed Sep 27 2023 Leigh Scott <leigh123linux@gmail.com> - 1:1.3.0-1
+- Update performous to 1.3.0
+
 * Mon Aug 07 2023 Sérgio Basto <sergio@serjux.com> - 1:1.2.0-8
 - Rebuild for opencv soname bump
 

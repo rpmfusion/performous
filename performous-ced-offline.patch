@@ -1,12 +1,44 @@
---- ./CMakeLists.txt.orig	2021-08-14 11:51:13.000000000 +0100
-+++ ./CMakeLists.txt	2021-08-19 22:19:26.292918145 +0100
-@@ -78,9 +78,6 @@ endif()
+From: Markus Koschany <apo@debian.org>
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -106,6 +106,9 @@ else()
+ 	message(STATUS "Localization disabled: Gettext tools (msgfmt) missing")
+ endif()
  
- include(FetchContent)
- FetchContent_Declare(ced-sources
--  GIT_REPOSITORY https://github.com/performous/compact_enc_det.git
--  #https://github.com/google/compact_enc_det.git
--  GIT_TAG        master
-   SOURCE_DIR ced-src
- )
++include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ced)
++add_subdirectory(ced)
++
+ add_subdirectory(data)
  
+ add_subdirectory(game)
+--- a/game/CMakeLists.txt
++++ b/game/CMakeLists.txt
+@@ -132,7 +132,7 @@ if (MINGW)
+ 	target_link_libraries(performous PRIVATE mingw32)
+ endif()
+ 
+-foreach(lib ${OUR_LIBS} SDL2 PangoCairo LibRSVG LibXML++ AVFormat SWResample SWScale ZLIB JPEG PNG PortAudio Fontconfig GLM Json Ced Aubio)
++foreach(lib ${OUR_LIBS} SDL2 PangoCairo LibRSVG LibXML++ AVFormat SWResample SWScale ZLIB JPEG PNG PortAudio Fontconfig GLM Json Aubio)
+ 	find_package(${lib} ${${lib}_REQUIRED_VERSION} REQUIRED)
+ 	message(STATUS "${lib} includes: ${${lib}_INCLUDE_DIRS}")
+ 	target_include_directories(performous SYSTEM PRIVATE ${${lib}_INCLUDE_DIRS})
+@@ -140,6 +140,8 @@ foreach(lib ${OUR_LIBS} SDL2 PangoCairo
+ 	add_definitions(${${lib}_DEFINITIONS})
+ endforeach(lib)
+ 
++target_link_libraries(performous PRIVATE ced)
++
+ find_package(fmt REQUIRED CONFIG)
+ # CppRESTSDK and their godforsaken U macro.
+ if(fmt_VERSION VERSION_GREATER_EQUAL 9.0.0)
+--- a/game/unicode.cc
++++ b/game/unicode.cc
+@@ -8,7 +8,7 @@
+ #include <unicode/unistr.h>
+ #include <unicode/ustream.h>
+ #include <unicode/ubidi.h>
+-#include "compact_enc_det/compact_enc_det.h"
++#include "../ced/compact_enc_det/compact_enc_det.h"
+ 
+ std::unique_ptr<icu::RuleBasedCollator> UnicodeUtil::m_searchCollator;
+ std::unique_ptr<icu::RuleBasedCollator> UnicodeUtil::m_sortCollator;
