@@ -121,7 +121,7 @@ rm -rf %buildroot%{_libdir}/*.{a,la}
 %{_bindir}/*
 %{_datadir}/applications/*.desktop
 %{_metainfodir}/%{name}.appdata.xml
-%{_datadir}/pixmaps/*.svg
+%{_datadir}/icons/hicolor/scalable/apps/performous.svg
 %{_mandir}/performous.6.*
 
 %files data
