@@ -17,6 +17,7 @@ Source0:        https://github.com/performous/performous/archive/refs/tags/%{ver
 Source1:        https://github.com/performous/compact_enc_det/archive/%{commit1}/ced-%{shortcommit1}.tar.gz
 Source3:        performous.appdata.xml
 Patch0:         performous-ced-offline.patch
+Patch1:         https://github.com/performous/performous/commit/eb9b97f46b7d064c32ed0f086d89a70427ce1d14.patch#/fix_compile.patch
 
 BuildRequires:  alsa-lib-devel
 BuildRequires:  aubio-devel
