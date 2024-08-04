@@ -54,6 +54,9 @@ BuildRequires:  blas-devel
 BuildRequires:  lapack-devel
 BuildRequires:  fftw-devel
 BuildRequires:  openssl-devel
+%if 0%{?fedora} && 0%{?fedora} >= 40
+BuildRequires:	openssl-devel-engine
+%endif
 BuildRequires:  pango-devel
 BuildRequires:  portaudio-devel
 BuildRequires:  portmidi-devel
