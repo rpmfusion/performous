@@ -7,7 +7,7 @@
 Name:           performous
 Epoch:          1
 Version:        1.3.1
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Free cross-platform music and rhythm / party game
 
 # The main code is GPLv2+, and there are fonts under ASL 2.0 and SIL licenses
@@ -18,6 +18,8 @@ Source1:        https://github.com/performous/compact_enc_det/archive/%{commit1}
 Source3:        performous.appdata.xml
 Patch0:         performous-ced-offline.patch
 Patch1:         https://github.com/performous/performous/commit/eb9b97f46b7d064c32ed0f086d89a70427ce1d14.patch#/fix_compile.patch
+# https://github.com/performous/performous/pull/1005
+Patch2:         performous-pr1005-ffmpeg-7.patch
 
 BuildRequires:  alsa-lib-devel
 BuildRequires:  aubio-devel
@@ -132,6 +134,9 @@ rm -rf %buildroot%{_libdir}/*.{a,la}
 
 
 %changelog
+* Sat Nov 02 2024 Mamoru TASAKA <mtasaka@tbz.t-com.ne.jp> - 1:1.3.1-2
+- Backport upstream patch for ffmpeg 7
+
 * Sun Aug 04 2024 Leigh Scott <leigh123linux@gmail.com> - 1:1.3.1-1
 - Update to 1.3.1
 

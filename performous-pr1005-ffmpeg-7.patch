@@ -1,0 +1,316 @@
+From 391a92b2448a782ec03508549415bea04bc2cfe8 Mon Sep 17 00:00:00 2001
+From: Gregorio Litenstein <g.litenstein@gmail.com>
+Date: Fri, 13 Sep 2024 17:14:43 -0300
+Subject: [PATCH 1/4] ffmpeg: Use AVChannelLayout API when available
+
+This adds support for ffmpeg@5.1+
+---
+ .github/workflows/macos.yml |  9 +----
+ game/ffmpeg.cc              | 65 ++++++++++++++++++++++---------------
+ game/ffmpeg.hh              | 11 ++++++-
+ 3 files changed, 50 insertions(+), 35 deletions(-)
+
+diff --git a/game/ffmpeg.cc b/game/ffmpeg.cc
+index db204fb885..f2bc349c4f 100644
+--- a/game/ffmpeg.cc
++++ b/game/ffmpeg.cc
+@@ -6,8 +6,8 @@
+ #include "util.hh"
+ 
+ #include "aubio/aubio.h"
+-#include <memory>
+ #include <iostream>
++#include <memory>
+ #include <sstream>
+ #include <stdexcept>
+ #include <system_error>
+@@ -31,6 +31,11 @@ extern "C" {
+ 
+ #define AUDIO_CHANNELS 2
+ 
++#if !defined(__PRETTY_FUNCTION__) && defined(_MSC_VER)
++#define __PRETTY_FUNCTION__ __FUNCSIG__
++#endif
++
++#define FFMPEG_CHECKED(func, args, caller) FFmpeg::check(func args, caller)
+ 
+ namespace {
+ 	std::string ffversion(unsigned ver) {
+@@ -229,18 +234,13 @@ static void printFFmpegInfo() {
+ #endif
+ }
+ 
+-class FFmpeg::Error: public std::runtime_error {
+-  public:
+-	Error(const FFmpeg &self, int errorValue): std::runtime_error(msgFmt(self, errorValue)) {}
+-  private:
+-	static std::string msgFmt(const FFmpeg &self, int errorValue) {
++std::string FFmpeg::Error::msgFmt(const FFmpeg &self, int errorValue, const char *func) {
+ 		char message[AV_ERROR_MAX_STRING_SIZE];
+ 		av_strerror(errorValue, message, AV_ERROR_MAX_STRING_SIZE);
+ 		std::ostringstream oss;
+-		oss << "FFmpeg Error: Processing file " << self.m_filename << " code=" << errorValue << ", error=" << message;
++		oss << "FFmpeg Error: Processing file " << self.m_filename << " code=" << errorValue << ", error=" << message << ", in function=" << func;
+ 		return oss.str();
+-	}
+-};
++}
+ 
+ FFmpeg::FFmpeg(fs::path const& _filename, int mediaType) : m_filename(_filename) {
+ 	static std::once_flag static_infos;
+@@ -249,12 +249,10 @@ FFmpeg::FFmpeg(fs::path const& _filename, int mediaType) : m_filename(_filename)
+ 	av_log_set_level(AV_LOG_ERROR);
+ 	{
+ 		AVFormatContext *avfctx = nullptr;
+-		auto err = avformat_open_input(&avfctx, m_filename.string().c_str(), nullptr, nullptr);
+-		if (err) throw Error(*this, err);
++		FFMPEG_CHECKED(avformat_open_input, (&avfctx, m_filename.string().c_str(), nullptr, nullptr), __PRETTY_FUNCTION__);
+ 		m_formatContext.reset(avfctx);
+ 	}
+-	auto err = avformat_find_stream_info(m_formatContext.get(), nullptr);
+-	if (err < 0) throw Error(*this, err);
++	FFMPEG_CHECKED(avformat_find_stream_info, (m_formatContext.get(), nullptr), __PRETTY_FUNCTION__);
+ 	m_formatContext->flags |= AVFMT_FLAG_GENPTS;
+ 	// Find a track and open the codec
+ #if (LIBAVFORMAT_VERSION_INT) >= (AV_VERSION_INT(59, 0, 100))
+@@ -262,7 +260,7 @@ FFmpeg::FFmpeg(fs::path const& _filename, int mediaType) : m_filename(_filename)
+ #endif
+ 	AVCodec* codec = nullptr;
+ 	m_streamId = av_find_best_stream(m_formatContext.get(), static_cast<AVMediaType>(mediaType), -1, -1, &codec, 0);
+-	if (m_streamId < 0) throw Error(*this, m_streamId);
++	if (m_streamId < 0) throw Error(*this, m_streamId, __PRETTY_FUNCTION__);
+ 
+ 	decltype(m_codecContext) pCodecCtx{avcodec_alloc_context3(codec), avcodec_free_context};
+ 	avcodec_parameters_to_context(pCodecCtx.get(), m_formatContext->streams[m_streamId]->codecpar);
+@@ -270,8 +268,7 @@ FFmpeg::FFmpeg(fs::path const& _filename, int mediaType) : m_filename(_filename)
+ 		static std::mutex s_avcodec_mutex;
+ 		// ffmpeg documentation is clear on the fact that avcodec_open2 is not thread safe.
+ 		std::lock_guard<std::mutex> l(s_avcodec_mutex);
+-		err = avcodec_open2(pCodecCtx.get(), codec, nullptr);
+-		if (err < 0) throw Error(*this, err);
++		FFMPEG_CHECKED(avcodec_open2, (pCodecCtx.get(), codec, nullptr), __PRETTY_FUNCTION__);
+ 	}
+ 	pCodecCtx->workaround_bugs = FF_BUG_AUTODETECT;
+ 	m_codecContext = std::move(pCodecCtx);
+@@ -290,13 +287,29 @@ AudioFFmpeg::AudioFFmpeg(fs::path const& filename, int rate, AudioCb audioCb) :
+ 		// setup resampler
+ 		m_resampleContext.reset(swr_alloc());
+ 		if (!m_resampleContext) throw std::runtime_error("Cannot create resampling context");
+-		av_opt_set_int(m_resampleContext.get(), "in_channel_layout", m_codecContext->channel_layout ? static_cast<std::int64_t>(m_codecContext->channel_layout) : av_get_default_channel_layout(m_codecContext->channels), 0);
+-		av_opt_set_int(m_resampleContext.get(), "out_channel_layout", av_get_default_channel_layout(AUDIO_CHANNELS), 0);
+-		av_opt_set_int(m_resampleContext.get(), "in_sample_rate", m_codecContext->sample_rate, 0);
+-		av_opt_set_int(m_resampleContext.get(), "out_sample_rate", static_cast<int>(m_rate), 0);
+-		av_opt_set_int(m_resampleContext.get(), "in_sample_fmt", m_codecContext->sample_fmt, 0);
+-		av_opt_set_int(m_resampleContext.get(), "out_sample_fmt", AV_SAMPLE_FMT_S16, 0);
+-		swr_init(m_resampleContext.get());
++
++#if (LIBAVFORMAT_VERSION_INT) >= (AV_VERSION_INT(59,0,0))
++	AVChannelLayout inLayout;
++	AVChannelLayout outLayout;
++	av_channel_layout_default(&outLayout, AUDIO_CHANNELS);
++	if (m_codecContext->ch_layout.order != AV_CHANNEL_ORDER_UNSPEC) {
++		FFMPEG_CHECKED(av_channel_layout_copy, (&inLayout, &m_codecContext->ch_layout), __PRETTY_FUNCTION__);
++	}
++	else {
++		av_channel_layout_default(&inLayout, m_codecContext->ch_layout.nb_channels);
++	}
++	av_channel_layout_default(&outLayout, AUDIO_CHANNELS);
++	FFMPEG_CHECKED(av_opt_set_chlayout, (m_resampleContext.get(), "in_chlayout", &inLayout, 0), __PRETTY_FUNCTION__);
++	FFMPEG_CHECKED(av_opt_set_chlayout, (m_resampleContext.get(), "out_chlayout", &outLayout, 0), __PRETTY_FUNCTION__);
++#else
++	FFMPEG_CHECKED(av_opt_set_int, (m_resampleContext.get(), "in_channel_layout", m_codecContext->channel_layout ? static_cast<std::int64_t>(m_codecContext->channel_layout) : av_get_default_channel_layout(m_codecContext->channels), 0), __PRETTY_FUNCTION__);
++	FFMPEG_CHECKED(av_opt_set_int, (m_resampleContext.get(), "out_channel_layout", av_get_default_channel_layout(AUDIO_CHANNELS), 0), __PRETTY_FUNCTION__);
++#endif
++	FFMPEG_CHECKED(av_opt_set_int, (m_resampleContext.get(), "in_sample_rate", m_codecContext->sample_rate, 0), __PRETTY_FUNCTION__);
++	FFMPEG_CHECKED(av_opt_set_int, (m_resampleContext.get(), "out_sample_rate", static_cast<int>(m_rate), 0), __PRETTY_FUNCTION__);
++	FFMPEG_CHECKED(av_opt_set_sample_fmt, (m_resampleContext.get(), "in_sample_fmt", m_codecContext->sample_fmt, 0), __PRETTY_FUNCTION__);
++	FFMPEG_CHECKED(av_opt_set_sample_fmt, (m_resampleContext.get(), "out_sample_fmt", AV_SAMPLE_FMT_S16, 0), __PRETTY_FUNCTION__);
++	FFMPEG_CHECKED(swr_init, (m_resampleContext.get()), __PRETTY_FUNCTION__);
+ 	}
+ 
+ double FFmpeg::duration() const { return double(m_formatContext->duration) / double(AV_TIME_BASE); }
+@@ -319,7 +332,7 @@ void FFmpeg::handleOneFrame() {
+ 			// End of file: no more data to read.
+ 			throw Eof();
+ 		} else if(ret < 0) {
+-			throw Error(*this, ret);
++			throw Error(*this, ret, __PRETTY_FUNCTION__);
+ 		}
+ 
+ 		if (pkt->stream_index != m_streamId) continue;
+@@ -332,7 +345,7 @@ void FFmpeg::handleOneFrame() {
+ 						// no room for new data, need to get more frames out of the decoder by
+ 						// calling avcodec_receive_frame()
+ 				} else if(ret < 0) {
+-						throw Error(*this, ret);
++						throw Error(*this, ret, __PRETTY_FUNCTION__);
+ 				}
+ 		handleSomeFrames();
+ 		read_one = true;
+@@ -364,7 +377,7 @@ void FFmpeg::handleSomeFrames() {
+ 			// not enough data to decode a frame, go read more and feed more to the decoder
+ 			break;
+ 		} else if (ret < 0) {
+-			throw Error(*this, ret);
++			throw Error(*this, ret, __PRETTY_FUNCTION__);
+ 		}
+ 		// frame is available here
+ 		if (frame->pts != std::int64_t(AV_NOPTS_VALUE)) {
+diff --git a/game/ffmpeg.hh b/game/ffmpeg.hh
+index 337091f5b6..e3b54a64a9 100644
+--- a/game/ffmpeg.hh
++++ b/game/ffmpeg.hh
+@@ -19,6 +19,7 @@
+ 
+ // ffmpeg forward declarations
+ extern "C" {
++  struct AVChannelLayout;
+   struct AVCodecContext;
+   struct AVFormatContext;
+   struct AVFrame;
+@@ -35,9 +36,17 @@ class FFmpeg {
+   public:
+ 	// Exceptions thrown by class
+ 	class Eof: public std::exception {};
+-	class Error;
++	class Error : public std::runtime_error {
++	  public:
++		Error(const FFmpeg &self, int errorValue, const char *func): std::runtime_error(msgFmt(self, errorValue, func)) {}
++	  private:
++		static std::string msgFmt(const FFmpeg &self, int errorValue, const char *func);
++	};
+ 	friend Error;
+ 
++	void inline check(int errorCode, const char* func = "") {
++		if (errorCode < 0) throw Error(*this, errorCode, func);
++	};
+ 	/// Decode file, depending on media type audio.
+ 	FFmpeg(fs::path const& filename, int mediaType);
+ 
+
+From 179c2ef93da18ffb34e96975b8b110d590db1661 Mon Sep 17 00:00:00 2001
+From: Gregorio Litenstein <g.litenstein@gmail.com>
+Date: Fri, 13 Sep 2024 17:11:41 -0300
+Subject: [PATCH 2/4] macOS bundler: Detect different ffmpeg versions.
+
+---
+ osx-utils/macos-bundler.py | 44 ++++++++++++++++++++++----------------
+ 1 file changed, 26 insertions(+), 18 deletions(-)
+
+diff --git a/osx-utils/macos-bundler.py b/osx-utils/macos-bundler.py
+index bd3b66b4c4..baf715d573 100755
+--- a/osx-utils/macos-bundler.py
++++ b/osx-utils/macos-bundler.py
+@@ -20,6 +20,7 @@
+ brew_location = None
+ opencv_prefix: Path = None
+ openssl_prefix: Path = None
++ffmpeg_prefix: Path = None
+ openssl_root = ""
+ script_prefix: Path = None
+ performous_source_dir = None
+@@ -65,46 +66,51 @@ def check_brew_formula(name : str, file : str) -> Optional[Path]:
+ 	else:
+ 		return None
+ 
+-def check_installed_port(name : str, file : str) -> Optional[str]:
++def check_installed_port(name : str, file : str) -> Optional[Path]:
+ 	p = subprocess.run(args = ["port", "contents", name], encoding="utf-8", capture_output=True)
+ 	if p.returncode == 0:
+ 		p2 = subprocess.run(args = ["grep", file], encoding="utf-8", capture_output=True, input=p.stdout)
+ 		if p2.returncode == 0:
+-			return str(str_to_path(p2.stdout.strip()).parent.parent)
++			return str_to_path(p2.stdout.strip()).parent.parent
+ 		else:
+ 			return None
+ 	else:
+ 		return None
+ 
+ def detect_prefix():
+-	global opencv_prefix, script_prefix, openssl_prefix, openssl_root
++	global opencv_prefix, script_prefix, openssl_prefix, ffmpeg_prefix, openssl_root
+ 	port_location = check_installed('port')
+ 	brew_location = check_installed('brew')
+ 	if port_location != None:
+ 		print("--- MacPorts install detected at: " + str(port_location) + "\n")
+-		check_opencv = check_installed_port("opencv4", "OpenCVConfig.cmake")
+-		if check_opencv != None:
+-			opencv_prefix = str(check_opencv)
+-			print("--- OpenCV 4+ detected at: " + str(opencv_prefix) + "\n")
+-		else:
+-			check_opencv = check_installed_port("opencv3", "OpenCVConfig.cmake")
++		for opencv_version in ["4", "3"]:
++			check_opencv = check_installed_port(f"opencv{opencv_version}", "OpenCVConfig.cmake")
+ 			if check_opencv != None:
+ 				opencv_prefix = str(check_opencv)
+-				print("--- OpenCV 3 detected at: " + str(opencv_prefix) + "\n")
+-
++				print(f"--- OpenCV {opencv_version} detected at: " + str(opencv_prefix) + "\n")
++				break
++		for ffmpeg_version in ["7", "6", ""]:
++			check_ffmpeg = check_installed_port(f"ffmpeg{ffmpeg_version}", "libavcodec.pc")
++			if check_ffmpeg != None:
++				ffmpeg_prefix = str(check_ffmpeg.parent)
++				print(f"--- FFMpeg {ffmpeg_version or '4'} detected at: " + str(ffmpeg_prefix) + "\n")
++				break
+ 	else:
+ 		print("--- MacPorts does not appear to be installed.\n")
+ 	if brew_location != None:
+ 		print("--- Homebrew install detected at: " + str(brew_location))
+-		check_opencv = check_brew_formula("opencv", "OpenCVConfig.cmake")
+-		if check_opencv != None:
+-			opencv_prefix = str(check_opencv.parent)
+-			print("--- OpenCV 4+ detected at: " + str(opencv_prefix) + "\n")
+-		else:
+-			check_opencv = check_brew_formula("opencv@3", "OpenCVConfig.cmake")
++		for opencv_version in ["4", "3"]:
++			check_opencv = check_brew_formula("opencv@{opencv_version}", "OpenCVConfig.cmake")
+ 			if check_opencv != None:
+ 				opencv_prefix = str(check_opencv.parent)
+-				print("--- OpenCV 3 detected at: " + str(opencv_prefix) + "\n")
++				print("--- OpenCV {opencv_version} detected at: " + str(opencv_prefix) + "\n")
++				break
++		for ffmpeg_version in ["7", "6", "5", "4"]:
++			check_ffmpeg = check_brew_formula(f"ffmpeg@{ffmpeg_version}", "libavcodec.pc")
++			if check_ffmpeg != None:
++				ffmpeg_prefix = str(check_ffmpeg.parent)
++				print(f"--- FFMpeg {ffmpeg_version} detected at: " + str(ffmpeg_prefix) + "\n")
++				break
+ 		check_openssl = check_brew_formula("openssl", "libcrypto.pc")
+ 		if check_openssl != None:
+ 			openssl_prefix = str(check_openssl)
+@@ -355,6 +361,8 @@ def bundle_libs():
+ 			prefix += (";" + str(opencv_prefix))
+ 		if openssl_prefix != None:
+ 			prefix += (";" + str(openssl_prefix))
++		if ffmpeg_prefix != None:
++			prefix += (";" + str(ffmpeg_prefix))
+ 		command = fr"""
+ 		cmake \
+ 		{openssl_root} \
+
+From fee7e651d894c847846a97fff3afadf9645ad778 Mon Sep 17 00:00:00 2001
+From: Gregorio Litenstein <g.litenstein@gmail.com>
+Date: Fri, 13 Sep 2024 23:11:22 -0300
+Subject: [PATCH 3/4] Fix ffmpeg check; no one likes semver anyway rite?
+
+The new API was introduced in ffmpeg 5.1, not 5.0.
+---
+ game/ffmpeg.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/game/ffmpeg.cc b/game/ffmpeg.cc
+index f2bc349c4f..21c06a4f03 100644
+--- a/game/ffmpeg.cc
++++ b/game/ffmpeg.cc
+@@ -288,7 +288,7 @@ AudioFFmpeg::AudioFFmpeg(fs::path const& filename, int rate, AudioCb audioCb) :
+ 		m_resampleContext.reset(swr_alloc());
+ 		if (!m_resampleContext) throw std::runtime_error("Cannot create resampling context");
+ 
+-#if (LIBAVFORMAT_VERSION_INT) >= (AV_VERSION_INT(59,0,0))
++#if (LIBAVUTIL_VERSION_INT) >= (AV_VERSION_INT(57,28,100)) // ffmpeg 5.1
+ 	AVChannelLayout inLayout;
+ 	AVChannelLayout outLayout;
+ 	av_channel_layout_default(&outLayout, AUDIO_CHANNELS);
+
+
