@@ -7,7 +7,7 @@
 Name:           performous
 Epoch:          1
 Version:        1.3.1
-Release:        4%{?dist}
+Release:        5%{?dist}
 Summary:        Free cross-platform music and rhythm / party game
 
 # The main code is GPLv2+, and there are fonts under ASL 2.0 and SIL licenses
@@ -134,6 +134,9 @@ rm -rf %buildroot%{_libdir}/*.{a,la}
 
 
 %changelog
+* Sun Jul 27 2025 RPM Fusion Release Engineering <sergiomb@rpmfusion.org> - 1:1.3.1-5
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_43_Mass_Rebuild
+
 * Sat Feb 15 2025 Leigh Scott <leigh123linux@gmail.com> - 1:1.3.1-4
 - Rebuild for new opencv
 
