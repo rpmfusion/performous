@@ -20,6 +20,8 @@ Patch0:         performous-ced-offline.patch
 Patch1:         https://github.com/performous/performous/commit/eb9b97f46b7d064c32ed0f086d89a70427ce1d14.patch#/fix_compile.patch
 # https://github.com/performous/performous/pull/1005
 Patch2:         performous-pr1005-ffmpeg-7.patch
+# https://github.com/performous/performous/pull/1087
+Patch3:         ffmpeg-8.patch
 
 BuildRequires:  alsa-lib-devel
 BuildRequires:  aubio-devel
