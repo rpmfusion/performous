@@ -7,7 +7,7 @@
 Name:           performous
 Epoch:          1
 Version:        1.3.1
-Release:        6%{?dist}
+Release:        7%{?dist}
 Summary:        Free cross-platform music and rhythm / party game
 
 # The main code is GPLv2+, and there are fonts under ASL 2.0 and SIL licenses
@@ -136,6 +136,9 @@ rm -rf %buildroot%{_libdir}/*.{a,la}
 
 
 %changelog
+* Fri Dec 12 2025 Nicolas Chauvet <kwizart@gmail.com> - 1:1.3.1-7
+- Rebuilt for OpenCV-4.12
+
 * Thu Nov 06 2025 Leigh Scott <leigh123linux@gmail.com> - 1:1.3.1-6
 - Rebuild for ffmpeg-8.0
 
