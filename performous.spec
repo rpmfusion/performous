@@ -26,7 +26,10 @@ Patch3:         ffmpeg-8.patch
 BuildRequires:  alsa-lib-devel
 BuildRequires:  aubio-devel
 BuildRequires:  boost-devel
+# https://fedoraproject.org/wiki/Changes/F44_Boost_1_90
+%if 0%{?fedora} && 0%{?fedora} < 44
 BuildRequires:  boost-system
+%endif
 BuildRequires:  boost-filesystem
 BuildRequires:  cmake
 BuildRequires:  cairo-devel
