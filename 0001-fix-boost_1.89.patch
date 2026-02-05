@@ -1,0 +1,29 @@
+From 22ea6e7274d1cbe0f78a39c890d72e464bbaaff1 Mon Sep 17 00:00:00 2001
+From: Nicolas PARLANT <nicolas.parlant@parhuet.fr>
+Date: Fri, 30 Jan 2026 17:18:37 +0100
+Subject: [PATCH] fix boost_1.89
+
+boost_system is header-only since 1.69 and the stub library is removed
+since boost-1.89
+
+Signed-off-by: Nicolas PARLANT <nicolas.parlant@parhuet.fr>
+---
+ testing/CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/testing/CMakeLists.txt b/testing/CMakeLists.txt
+index be479a900bfc..a56f95ad3e5b 100644
+--- a/testing/CMakeLists.txt
++++ b/testing/CMakeLists.txt
+@@ -50,7 +50,7 @@ if(GTest_FOUND)
+ 	
+ 	add_executable(performous_test ${SOURCES})
+ 
+-	find_package(Boost 1.55 REQUIRED COMPONENTS program_options iostreams system locale)
++	find_package(Boost 1.69 REQUIRED COMPONENTS program_options iostreams locale)
+ 	target_link_libraries(performous_test PRIVATE ${Boost_LIBRARIES})
+ 
+ 	find_package(fmt 8.1 REQUIRED CONFIG)
+-- 
+2.52.0
+

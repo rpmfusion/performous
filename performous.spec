@@ -1,7 +1,7 @@
-%global gitdate 20210814
-%global commit0 e0a28a61df442b4a4a34521cd3aa8e37e3f9ce3c
+%global gitdate 20251230
+%global commit0 94f237f8584e2ced7c5717c6af4e899467fc5d8d
 %global shortcommit0 %(c=%{commit0}; echo ${c:0:7})
-%global commit1 9ca1351fe0b1e85992a407b0fc54a63e9b3adc6e
+%global commit1 28f46c18c60b851773b0ff61f3ce416fb09adcf3
 %global shortcommit1 %(c=%{commit1}; echo ${c:0:7})
 
 Name:           performous
@@ -13,15 +13,12 @@ Summary:        Free cross-platform music and rhythm / party game
 # The main code is GPLv2+, and there are fonts under ASL 2.0 and SIL licenses
 License:        GPLv2+ and ASL 2.0 and OFL
 URL:            https://performous.org
-Source0:        https://github.com/performous/performous/archive/refs/tags/%{version}/%{name}-%{version}.tar.gz
+Source0:        https://github.com/performous/performous/archive/%{commit0}/%{name}-%{shortcommit0}.tar.gz
 Source1:        https://github.com/performous/compact_enc_det/archive/%{commit1}/ced-%{shortcommit1}.tar.gz
 Source3:        performous.appdata.xml
 Patch0:         performous-ced-offline.patch
-Patch1:         https://github.com/performous/performous/commit/eb9b97f46b7d064c32ed0f086d89a70427ce1d14.patch#/fix_compile.patch
-# https://github.com/performous/performous/pull/1005
-Patch2:         performous-pr1005-ffmpeg-7.patch
-# https://github.com/performous/performous/pull/1087
-Patch3:         ffmpeg-8.patch
+# https://github.com/performous/performous/pull/1105
+Patch4:         0001-fix-boost_1.89.patch
 
 BuildRequires:  alsa-lib-devel
 BuildRequires:  aubio-devel
@@ -42,6 +39,7 @@ BuildRequires:  gcc-c++
 BuildRequires:  gettext
 BuildRequires:  glibmm24-devel
 BuildRequires:  glm-devel
+BuildRequires:  gmock-devel
 BuildRequires:  help2man
 BuildRequires:  ImageMagick-devel
 BuildRequires:  ImageMagick-c++-devel
@@ -56,6 +54,7 @@ BuildRequires:  libxml2-devel
 BuildRequires:  libxml++-devel
 BuildRequires:  libraw1394-devel
 BuildRequires:  libtheora-devel
+BuildRequires:  libwebp-devel
 BuildRequires:  opencv-devel
 BuildRequires:  openblas-devel
 BuildRequires:  blas-devel
@@ -70,7 +69,8 @@ BuildRequires:  portaudio-devel
 BuildRequires:  portmidi-devel
 BuildRequires:  recode
 BuildRequires:  SDL2-devel
-BuildRequires:  python
+BuildRequires:  spdlog-devel
+BuildRequires:  python3
 
 Requires:       %{name}-data = %{?epoch}:%{version}-%{release}
 Requires:       ffmpeg-libs%{?_isa}
@@ -93,11 +93,14 @@ package.
 
 
 %prep
-%autosetup -p1 -n %{name}-%{version}
+%autosetup -p1 -n %{name}-%{commit0}
 mkdir -p ced
 tar -xf %{SOURCE1} -C ced/ --strip 1
 cp -p "docs/license/SIL OFL Font License New Rocker.txt" SIL-OFL.txt
 
+# Disable Werror:
+#sed -i -e '/Werror/d' game/CMakeLists.txt
+sed -i -e '/Werror/d' testing/CMakeLists.txt
 
 %build
 # Jack support is disabled because the engine can't be chosen at run-time and
